@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Danh sách sự kiện — TechFest</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">🚀 TechFest</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMain">
+      <ul class="navbar-nav ms-auto gap-1">
+        <li class="nav-item"><a class="nav-link" href="index.html">Trang chủ</a></li>
+        <li class="nav-item"><a class="nav-link active" href="courses.html">Sự kiện</a></li>
+        <li class="nav-item"><a class="nav-link" href="register.html">Đăng ký</a></li>
+        <li class="nav-item"><a class="nav-link" href="registrations.html">DS Đăng ký</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+  <div class="container">
+    <nav aria-label="breadcrumb" class="mb-2">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="index.html">Trang chủ</a></li>
+        <li class="breadcrumb-item active">Danh sách sự kiện</li>
+      </ol>
+    </nav>
+    <h1>📋 Tất cả Sự kiện & Workshop</h1>
+    <p>Tìm kiếm và chọn sự kiện phù hợp với mức độ và lĩnh vực bạn muốn học</p>
+  </div>
+</section>
+
+<!-- MAIN CONTENT -->
+<section class="py-5">
+  <div class="container">
+
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-5">
+          <label class="form-label fw-semibold mb-1" for="search-input">🔍 Tìm kiếm</label>
+          <input type="text" id="search-input" class="form-control" placeholder="Nhập tên sự kiện, mô tả...">
+        </div>
+        <div class="col-md-3">
+          <label class="form-label fw-semibold mb-1" for="category-filter">📁 Danh mục</label>
+          <select id="category-filter" class="form-select">
+            <option value="">Tất cả danh mục</option>
+            <option value="Frontend">Frontend</option>
+            <option value="Backend">Backend</option>
+            <option value="DevOps">DevOps</option>
+            <option value="Design">Design</option>
+            <option value="Security">Security</option>
+            <option value="AI">AI</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label fw-semibold mb-1" for="level-filter">📊 Cấp độ</label>
+          <select id="level-filter" class="form-select">
+            <option value="">Tất cả</option>
+            <option value="Beginner">Beginner</option>
+            <option value="Intermediate">Intermediate</option>
+            <option value="Advanced">Advanced</option>
+          </select>
+        </div>
+        <div class="col-md-2 d-grid">
+          <button id="reset-filter" class="btn btn-outline-secondary">↺ Đặt lại</button>
+        </div>
+      </div>
+      <div class="mt-2">
+        <span id="result-count" class="text-muted"></span>
+      </div>
+    </div>
+
+    <!-- EVENTS GRID -->
+    <div class="row" id="events-container">
+      <!-- Rendered by JS -->
+    </div>
+
+    <!-- NO RESULT -->
+    <div id="no-result" class="empty-state d-none">
+      <div class="empty-icon">🔍</div>
+      <h5>Không tìm thấy kết quả</h5>
+      <p>Thử thay đổi từ khóa hoặc bộ lọc để tìm sự kiện phù hợp.</p>
+      <button id="reset-filter-2" class="btn btn-primary mt-2" onclick="document.getElementById('reset-filter').click()">Xóa bộ lọc</button>
+    </div>
+
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4 mb-4">
+        <div class="footer-brand mb-2">🚀 TechFest</div>
+        <p style="font-size:.88rem;">Website sự kiện & workshop công nghệ — Khoa CNTT, Trường ĐH Bình Dương, Phân hiệu Cà Mau.</p>
+      </div>
+      <div class="col-md-3 mb-4">
+        <h5>Liên kết nhanh</h5>
+        <ul class="list-unstyled" style="font-size:.88rem;">
+          <li><a href="index.html">Trang chủ</a></li>
+          <li><a href="courses.html">Danh sách sự kiện</a></li>
+          <li><a href="register.html">Đăng ký tham dự</a></li>
+          <li><a href="registrations.html">Danh sách đã đăng ký</a></li>
+        </ul>
+      </div>
+      <div class="col-md-5 mb-4">
+        <h5>Thông tin liên hệ</h5>
+        <ul class="list-unstyled" style="font-size:.88rem;">
+          <li>📍 Số 254 Lý Bôn, Phường 7, TP. Cà Mau</li>
+          <li>📧 cntt@bdu.edu.vn</li>
+          <li>📞 0384762370</li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-divider text-center" style="font-size:.82rem;">
+      <p class="mb-0">© 2026 TechFest — Khoa Công nghệ Thông tin. Đề tài Giữa kỳ Lập trình Web Frontend.</p>
+    </div>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
