@@ -1,17 +1,17 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" width="1600" height="600">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
   <defs>
     <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#121316"/>
-      <stop offset="1" stop-color="#1b1d22"/>
+      <stop offset="0" stop-color="#181c22"/>
+      <stop offset="1" stop-color="#262f3a"/>
     </linearGradient>
     <radialGradient id="glow" cx="80%" cy="20%" r="60%">
-      <stop offset="0" stop-color="#36e2ff" stop-opacity="0.35"/>
-      <stop offset="1" stop-color="#36e2ff" stop-opacity="0"/>
+      <stop offset="0" stop-color="#ffce45" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#ffce45" stop-opacity="0"/>
     </radialGradient>
   </defs>
-  <rect width="1600" height="600" fill="url(#g)"/>
-  <rect width="1600" height="600" fill="url(#glow)"/>
-  <g transform="translate(992.0,108.0) scale(0.95)" style="color:#36e2ff">
+  <rect width="640" height="360" fill="url(#g)"/>
+  <rect width="640" height="360" fill="url(#glow)"/>
+  <g transform="translate(396.8,64.8) scale(0.55)" style="color:#ffce45">
     
     <g transform="translate(0,0)">
       <path d="M120 40
@@ -30,9 +30,9 @@
     </g>
     
   </g>
-  <g transform="translate(32.0,120.0) scale(1.6)">
-    <line x1="0" y1="0" x2="46" y2="0" stroke="#36e2ff" stroke-width="3"/>
+  <g transform="translate(12.8,72.0) scale(1.0)">
+    <line x1="0" y1="0" x2="46" y2="0" stroke="#ffce45" stroke-width="3"/>
   </g>
-  <text x="64" y="270" font-family="Arial, sans-serif" font-weight="700" font-size="34" fill="#f3f1ea" letter-spacing="1">PLUGGED</text>
-  <text x="64" y="298" font-family="Arial, sans-serif" font-size="16" fill="#9aa3b0">Sự kiện & Workshop Guitar Điện</text>
+  <text x="25" y="162" font-family="Arial, sans-serif" font-weight="700" font-size="22" fill="#f3f1ea" letter-spacing="1">WORKSHOP</text>
+  <text x="25" y="182" font-family="Arial, sans-serif" font-size="13" fill="#9aa3b0">Tapping & Legato Kỹ Thuật Cao</text>
 </svg>

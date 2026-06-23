@@ -1,59 +1,46 @@
 # AI Usage Report
 
 ## 1. Em có sử dụng AI không?
-
-**Có** — Em đã sử dụng Claude (Anthropic) để hỗ trợ xây dựng dự án này.
-
----
+Có.
 
 ## 2. AI hỗ trợ phần nào?
-
-- Gợi ý cấu trúc thư mục và phân chia file
-- Tạo dữ liệu mẫu 9 sự kiện trong `data.js`
-- Tạo khung code ban đầu cho `main.js` (render cards, filter, LocalStorage)
-- Gợi ý CSS variables và color palette
-- Giải thích cách dùng Bootstrap Modal với JavaScript
-
----
+- Lên ý tưởng chủ đề "guitar điện" và đặt tên thương hiệu (PLUGGED) phù hợp
+  với yêu cầu đề bài.
+- Viết khung HTML cho 4 trang (index, courses, register, registrations) theo
+  đúng cấu trúc thư mục yêu cầu.
+- Viết CSS tùy biến (style.css) với hệ thống màu/typography theo phong cách
+  "sân khấu/ampli điện" và "ticket card" cho danh sách sự kiện.
+- Viết logic JavaScript thuần (main.js): render dữ liệu, tìm kiếm/lọc, modal
+  chi tiết, validation form, lưu/đọc/xóa LocalStorage.
+- Tạo dữ liệu mẫu 10 sự kiện trong data.js.
+- Tạo ảnh minh họa SVG tạm thời cho banner và từng sự kiện.
 
 ## 3. Prompt đã sử dụng
+- "Dựa vào đề hãy viết cho tôi đăng ký sự kiện guitar điện" (yêu cầu xây
+  dựng toàn bộ website theo đúng đề giữa kỳ Lập trình Web Frontend, chủ đề
+  guitar điện).
 
-Một số prompt chính em đã dùng:
-
-1. *"Tạo file data.js với mảng 9 sự kiện công nghệ có các trường: id, title, category, level, image, date, description, detail"*
-2. *"Viết hàm JavaScript render cards từ mảng events vào container, mỗi card có nút Xem chi tiết và Đăng ký"*
-3. *"Giải thích cách validate form bằng JavaScript thuần, hiển thị lỗi gần từng input, không dùng alert()"*
-4. *"Cách lưu mảng object vào LocalStorage và đọc lại bằng JSON.stringify/parse"*
-
----
+*(Sinh viên ghi thêm các prompt mình tự đặt thêm khi tùy biến lại sản phẩm,
+ví dụ: "đổi màu chủ đạo", "thêm sự kiện mới", "sửa lỗi validation số điện
+thoại"...)*
 
 ## 4. Em đã chỉnh sửa gì sau khi AI sinh code?
-
-- Đổi màu sắc giao diện theo đúng chủ đề đã chọn (Navy + Teal + Amber)
-- Thêm `data-count` attribute để animate counter trên trang chủ
-- Sửa lại logic filter để hỗ trợ tìm kiếm đồng thời tên VÀ mô tả
-- Thêm pre-select sự kiện từ URL query `?id=X` khi click "Đăng ký" từ card
-- Chỉnh responsive CSS cho màn hình nhỏ hơn 480px
-- Thêm `onerror` fallback cho img tag để không vỡ layout khi thiếu ảnh
-
----
+> Sinh viên cần tự điền phần này sau khi thực sự chỉnh sửa lại sản phẩm,
+> ví dụ:
+- Đổi tên thương hiệu/nội dung mô tả sự kiện theo câu lạc bộ/lớp thật.
+- Thay ảnh SVG minh họa bằng ảnh chụp/ảnh thiết kế thật của sự kiện.
+- Chỉnh lại bảng màu, font chữ cho phù hợp gu thẩm mỹ cá nhân.
+- Thêm/bớt sự kiện, sửa lại nội dung mô tả chi tiết.
+- Kiểm tra và chỉnh sửa lại các đoạn validation, thông báo lỗi.
 
 ## 5. Phần nào em tự viết?
-
-- Toàn bộ nội dung copy (tên sự kiện, mô tả, thông tin trường)
-- Cấu trúc HTML từng trang (semantic tags, layout)
-- CSS hover effects và transition
-- Logic xử lý URL query string để pre-select sự kiện
-- Xử lý edge case khi localStorage trống
-- Viết README đầy đủ
-
----
+> Sinh viên ghi rõ phần mình tự viết/tự sửa, ví dụ: tự viết lại nội dung sự
+> kiện theo câu lạc bộ trường, tự chỉnh CSS phần navbar/footer, tự thêm
+> field mới trong form đăng ký, tự debug lỗi khi đưa lên GitHub Pages...
 
 ## 6. Em học được gì?
-
-- Cách tổ chức code frontend theo module: tách `data.js` và `main.js` giúp dễ bảo trì
-- LocalStorage chỉ lưu được string nên phải dùng `JSON.stringify`/`JSON.parse`
-- Bootstrap `is-invalid` / `is-valid` classes giúp hiển thị validation đẹp mà không cần CSS thêm
-- Regex `/^\d{9,11}$/` để validate số điện thoại Việt Nam
-- Cách truyền tham số qua URL (`?id=5`) để kết nối giữa các trang HTML tĩnh
-- AI là công cụ hỗ trợ, không thể thay thế việc hiểu và tự debug code
+> Sinh viên tự tóm tắt kiến thức rút ra sau khi làm đồ án, ví dụ: cách tổ
+> chức code JavaScript thuần dùng chung cho nhiều trang, cách dùng
+> LocalStorage để lưu dữ liệu tạm, cách validate form không dùng alert(),
+> cách style lại Bootstrap component cho hợp giao diện riêng, cách public
+> website bằng GitHub Pages và xử lý lỗi đường dẫn ảnh.

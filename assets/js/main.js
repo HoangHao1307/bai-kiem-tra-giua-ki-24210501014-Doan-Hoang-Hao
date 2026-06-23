@@ -1,304 +1,416 @@
-// =============================================
-// UTILITY FUNCTIONS
-// =============================================
+/* =========================================================
+   main.js
+   Toàn bộ logic JavaScript thuần cho website PLUGGED:
+   - Render danh sách sự kiện từ mảng events (data.js)
+   - Tìm kiếm theo tên, lọc theo danh mục / cấp độ
+   - Hiển thị chi tiết bằng Bootstrap Modal
+   - Validation form đăng ký
+   - Lưu / đọc / xóa đăng ký bằng LocalStorage
+   File này được dùng chung cho mọi trang, mỗi hàm tự kiểm
+   tra xem phần tử cần thiết có tồn tại trên trang hay không
+   trước khi chạy.
+   ========================================================= */
 
-function getCategoryIcon(cat) {
-  const icons = { Frontend: '💻', Backend: '⚙️', DevOps: '🔧', Design: '🎨', Security: '🔒', AI: '🤖' };
-  return icons[cat] || '📌';
-}
-function getLevelColor(level) {
-  return { Beginner: 'success', Intermediate: 'warning', Advanced: 'danger' }[level] || 'secondary';
-}
-function formatDate(d) {
-  const dt = new Date(d);
-  return dt.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const STORAGE_KEY = "plugged_registrations";
+
+/* ---------- Helpers chung ---------- */
+
+function formatDate(isoDate) {
+  const d = new Date(isoDate + "T00:00:00");
+  return d.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
-// =============================================
-// LOCALSTORAGE
-// =============================================
+function getEventById(id) {
+  return events.find((e) => e.id === Number(id));
+}
+
+function levelBadgeClass(level) {
+  return level === "Advanced" ? "badge-amber" : "badge-volt";
+}
+
+/* ---------- LocalStorage: đăng ký ---------- */
+
 function getRegistrations() {
-  return JSON.parse(localStorage.getItem('techfest_registrations') || '[]');
-}
-function saveRegistrations(list) {
-  localStorage.setItem('techfest_registrations', JSON.stringify(list));
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error("Không đọc được LocalStorage:", e);
+    return [];
+  }
 }
 
-// =============================================
-// INDEX PAGE — FEATURED EVENTS
-// =============================================
+function saveRegistration(reg) {
+  const list = getRegistrations();
+  list.push(reg);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+function deleteRegistration(regId) {
+  const list = getRegistrations().filter((r) => r.id !== regId);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+function clearRegistrations() {
+  localStorage.removeItem(STORAGE_KEY);
+}
+
+/* =========================================================
+   1. TRANG CHỦ (index.html) - sự kiện nổi bật
+   ========================================================= */
+
 function renderFeaturedEvents() {
-  const container = document.getElementById('featured-events');
-  if (!container) return;
-  const featured = events.slice(0, 3);
-  container.innerHTML = featured.map(e => buildCard(e, true)).join('');
+  const wrap = document.getElementById("featuredEvents");
+  if (!wrap) return;
+
+  const featured = events.slice(0, 4);
+  wrap.innerHTML = featured.map((ev) => eventCardTemplate(ev)).join("");
+  attachCardEvents(wrap);
 }
 
-// =============================================
-// COURSES PAGE — FULL LIST + SEARCH/FILTER
-// =============================================
-let currentFiltered = [...events];
+/* =========================================================
+   2. TRANG DANH SÁCH (courses.html)
+   ========================================================= */
 
-function renderEventCards(list) {
-  const container = document.getElementById('events-container');
-  const noResult = document.getElementById('no-result');
-  if (!container) return;
-  if (list.length === 0) {
-    container.innerHTML = '';
-    if (noResult) noResult.classList.remove('d-none');
+let activeFilters = { keyword: "", category: "all", level: "all" };
+
+function populateFilterOptions() {
+  const catSelect = document.getElementById("filterCategory");
+  const lvlSelect = document.getElementById("filterLevel");
+  if (!catSelect || !lvlSelect) return;
+
+  const categories = [...new Set(events.map((e) => e.category))];
+  const levels = [...new Set(events.map((e) => e.level))];
+
+  categories.forEach((c) => {
+    const opt = document.createElement("option");
+    opt.value = c;
+    opt.textContent = c;
+    catSelect.appendChild(opt);
+  });
+  levels.forEach((l) => {
+    const opt = document.createElement("option");
+    opt.value = l;
+    opt.textContent = l;
+    lvlSelect.appendChild(opt);
+  });
+}
+
+function applyFilters() {
+  return events.filter((ev) => {
+    const matchKeyword = ev.title.toLowerCase().includes(activeFilters.keyword.toLowerCase());
+    const matchCategory = activeFilters.category === "all" || ev.category === activeFilters.category;
+    const matchLevel = activeFilters.level === "all" || ev.level === activeFilters.level;
+    return matchKeyword && matchCategory && matchLevel;
+  });
+}
+
+function renderEventList() {
+  const wrap = document.getElementById("eventList");
+  if (!wrap) return;
+
+  const filtered = applyFilters();
+  const emptyState = document.getElementById("emptyState");
+
+  if (filtered.length === 0) {
+    wrap.innerHTML = "";
+    if (emptyState) emptyState.classList.remove("d-none");
     return;
   }
-  if (noResult) noResult.classList.add('d-none');
-  container.innerHTML = list.map(e => buildCard(e, false)).join('');
+  if (emptyState) emptyState.classList.add("d-none");
+
+  wrap.innerHTML = filtered.map((ev) => eventCardTemplate(ev)).join("");
+  attachCardEvents(wrap);
 }
 
-function buildCard(e, featured) {
+function initEventListPage() {
+  const wrap = document.getElementById("eventList");
+  if (!wrap) return;
+
+  populateFilterOptions();
+  renderEventList();
+
+  const searchInput = document.getElementById("searchInput");
+  const catSelect = document.getElementById("filterCategory");
+  const lvlSelect = document.getElementById("filterLevel");
+  const resetBtn = document.getElementById("resetFilterBtn");
+
+  searchInput.addEventListener("input", (e) => {
+    activeFilters.keyword = e.target.value;
+    renderEventList();
+  });
+  catSelect.addEventListener("change", (e) => {
+    activeFilters.category = e.target.value;
+    renderEventList();
+  });
+  lvlSelect.addEventListener("change", (e) => {
+    activeFilters.level = e.target.value;
+    renderEventList();
+  });
+  resetBtn.addEventListener("click", () => {
+    activeFilters = { keyword: "", category: "all", level: "all" };
+    searchInput.value = "";
+    catSelect.value = "all";
+    lvlSelect.value = "all";
+    renderEventList();
+  });
+
+  // Nếu courses.html được mở kèm ?category=Workshop từ trang chủ
+  const params = new URLSearchParams(window.location.search);
+  const presetCategory = params.get("category");
+  if (presetCategory) {
+    activeFilters.category = presetCategory;
+    catSelect.value = presetCategory;
+    renderEventList();
+  }
+}
+
+/* ---------- Card template + sự kiện gắn cho nút trong card ---------- */
+
+function eventCardTemplate(ev) {
   return `
-  <div class="col-lg-4 col-md-6 mb-4">
-    <div class="card event-card h-100 shadow-sm">
-      <div class="card-img-wrapper">
-        <img src="${e.image}" alt="${e.title}" class="card-img-top event-img" onerror="this.src='assets/images/placeholder.svg'">
-        <span class="badge badge-category">${getCategoryIcon(e.category)} ${e.category}</span>
-      </div>
-      <div class="card-body d-flex flex-column">
-        <h5 class="card-title">${e.title}</h5>
-        <p class="card-text text-muted small flex-grow-1">${e.description}</p>
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <span class="badge bg-${getLevelColor(e.level)}">${e.level}</span>
-          <small class="text-muted">📅 ${formatDate(e.date)}</small>
-        </div>
-        <div class="d-grid">
-          <a href="register.html?id=${e.id}" class="btn btn-primary btn-sm">✍️ Đăng ký ngay</a>
+    <div class="col-sm-6 col-lg-3">
+      <div class="ticket-card">
+        <img src="${ev.image}" class="ticket-img" alt="${ev.title}">
+        <div class="ticket-body">
+          <div class="d-flex justify-content-between align-items-start gap-2">
+            <span class="badge ${levelBadgeClass(ev.level)}">${ev.level}</span>
+            <span class="ticket-date">${formatDate(ev.date)}</span>
+          </div>
+          <h5>${ev.title}</h5>
+          <p class="desc">${ev.description}</p>
+          <div class="ticket-perforation"></div>
+          <div class="ticket-actions">
+            <button class="btn btn-outline-volt btn-sm flex-fill btn-detail" data-id="${ev.id}">Xem chi tiết</button>
+            <button class="btn btn-volt btn-sm flex-fill btn-register" data-id="${ev.id}">Đăng ký</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>`;
+  `;
 }
 
-function initFilters() {
-  const searchInput = document.getElementById('search-input');
-  const categoryFilter = document.getElementById('category-filter');
-  const levelFilter = document.getElementById('level-filter');
-  const resetBtn = document.getElementById('reset-filter');
-  const countEl = document.getElementById('result-count');
-
-  if (!searchInput) return;
-
-  function applyFilter() {
-    const q = searchInput.value.toLowerCase().trim();
-    const cat = categoryFilter.value;
-    const lv = levelFilter.value;
-    currentFiltered = events.filter(e => {
-      const matchQ = e.title.toLowerCase().includes(q) || e.description.toLowerCase().includes(q);
-      const matchCat = cat === '' || e.category === cat;
-      const matchLv = lv === '' || e.level === lv;
-      return matchQ && matchCat && matchLv;
+function attachCardEvents(container) {
+  container.querySelectorAll(".btn-detail").forEach((btn) => {
+    btn.addEventListener("click", () => showEventModal(btn.dataset.id));
+  });
+  container.querySelectorAll(".btn-register").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      window.location.href = `register.html?eventId=${btn.dataset.id}`;
     });
-    if (countEl) countEl.textContent = `Hiển thị ${currentFiltered.length} / ${events.length} sự kiện`;
-    renderEventCards(currentFiltered);
-  }
+  });
+}
 
-  searchInput.addEventListener('input', applyFilter);
-  categoryFilter.addEventListener('change', applyFilter);
-  levelFilter.addEventListener('change', applyFilter);
-  resetBtn.addEventListener('click', () => {
-    searchInput.value = '';
-    categoryFilter.value = '';
-    levelFilter.value = '';
-    applyFilter();
+/* =========================================================
+   3. MODAL CHI TIẾT (Bootstrap Modal dùng chung)
+   ========================================================= */
+
+function showEventModal(id) {
+  const ev = getEventById(id);
+  if (!ev) return;
+
+  document.getElementById("modalTitle").textContent = ev.title;
+  document.getElementById("modalImage").src = ev.image;
+  document.getElementById("modalImage").alt = ev.title;
+  document.getElementById("modalCategory").textContent = ev.category;
+  document.getElementById("modalLevel").textContent = ev.level;
+  document.getElementById("modalDate").textContent = formatDate(ev.date);
+  document.getElementById("modalDetail").textContent = ev.detail;
+
+  const registerBtn = document.getElementById("modalRegisterBtn");
+  registerBtn.href = `register.html?eventId=${ev.id}`;
+
+  const modalEl = document.getElementById("eventDetailModal");
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  modal.show();
+}
+
+/* =========================================================
+   4. TRANG ĐĂNG KÝ (register.html)
+   ========================================================= */
+
+function populateEventSelect() {
+  const select = document.getElementById("eventSelect");
+  if (!select) return;
+
+  events.forEach((ev) => {
+    const opt = document.createElement("option");
+    opt.value = ev.id;
+    opt.textContent = `${ev.title} (${formatDate(ev.date)})`;
+    select.appendChild(opt);
   });
 
-  applyFilter();
+  const params = new URLSearchParams(window.location.search);
+  const presetId = params.get("eventId");
+  if (presetId) select.value = presetId;
 }
 
-// =============================================
-// MODAL
-// =============================================
-// =============================================
-// REGISTER PAGE
-// =============================================
+function showFieldError(inputEl, message) {
+  inputEl.classList.add("is-invalid-custom");
+  const feedback = document.getElementById(inputEl.dataset.feedback);
+  if (feedback) {
+    feedback.textContent = message;
+    feedback.classList.add("show");
+  }
+}
+
+function clearFieldError(inputEl) {
+  inputEl.classList.remove("is-invalid-custom");
+  const feedback = document.getElementById(inputEl.dataset.feedback);
+  if (feedback) feedback.classList.remove("show");
+}
+
+function validateRegisterForm(form) {
+  let isValid = true;
+
+  const fullName = form.fullName;
+  const email = form.email;
+  const phone = form.phone;
+  const className = form.className;
+  const eventSelect = form.eventSelect;
+
+  [fullName, email, phone, className, eventSelect].forEach(clearFieldError);
+
+  if (fullName.value.trim().length < 3) {
+    showFieldError(fullName, "Họ và tên không được rỗng và phải từ 3 ký tự trở lên.");
+    isValid = false;
+  }
+
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!email.value.trim() || !emailPattern.test(email.value.trim())) {
+    showFieldError(email, "Email không được rỗng và phải đúng định dạng (ví dụ: ten@example.com).");
+    isValid = false;
+  }
+
+  const phonePattern = /^[0-9]{9,11}$/;
+  if (!phonePattern.test(phone.value.trim())) {
+    showFieldError(phone, "Số điện thoại chỉ gồm chữ số, từ 9 đến 11 chữ số.");
+    isValid = false;
+  }
+
+  if (!className.value.trim()) {
+    showFieldError(className, "Lớp không được rỗng.");
+    isValid = false;
+  }
+
+  if (!eventSelect.value) {
+    showFieldError(eventSelect, "Vui lòng chọn một sự kiện/khóa học.");
+    isValid = false;
+  }
+
+  return isValid;
+}
+
 function initRegisterPage() {
-  const form = document.getElementById('register-form');
+  const form = document.getElementById("registerForm");
   if (!form) return;
 
-  // Populate select
-  const select = document.getElementById('event-select');
-  if (select) {
-    events.forEach(e => {
-      const opt = document.createElement('option');
-      opt.value = e.id;
-      opt.textContent = `${e.title} — ${formatDate(e.date)}`;
-      select.appendChild(opt);
-    });
-    // Pre-select from URL query
-    const params = new URLSearchParams(window.location.search);
-    const preId = params.get('id');
-    if (preId) select.value = preId;
-  }
+  populateEventSelect();
 
-  form.addEventListener('submit', function(ev) {
-    ev.preventDefault();
-    if (validateForm()) {
-      submitRegistration();
-    }
-  });
+  const successBox = document.getElementById("registerSuccess");
 
-  // Live validation on blur
-  ['fullname', 'email', 'phone', 'class-input', 'event-select'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('blur', () => validateField(id));
-  });
-}
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
 
-function validateField(id) {
-  const el = document.getElementById(id);
-  if (!el) return true;
-  const val = el.value.trim();
-  let msg = '';
-
-  if (id === 'fullname') {
-    if (!val) msg = 'Họ và tên không được để trống.';
-    else if (val.length < 3) msg = 'Họ và tên tối thiểu 3 ký tự.';
-  } else if (id === 'email') {
-    if (!val) msg = 'Email không được để trống.';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) msg = 'Email không đúng định dạng.';
-  } else if (id === 'phone') {
-    if (!val) msg = 'Số điện thoại không được để trống.';
-    else if (!/^\d{9,11}$/.test(val)) msg = 'Số điện thoại chỉ chứa chữ số, từ 9 đến 11 chữ số.';
-  } else if (id === 'class-input') {
-    if (!val) msg = 'Tên lớp không được để trống.';
-  } else if (id === 'event-select') {
-    if (!val) msg = 'Vui lòng chọn sự kiện/khóa học.';
-  }
-
-  showFieldError(el, msg);
-  return msg === '';
-}
-
-function showFieldError(el, msg) {
-  el.classList.remove('is-invalid', 'is-valid');
-  const feedback = el.nextElementSibling;
-  if (msg) {
-    el.classList.add('is-invalid');
-    if (feedback && feedback.classList.contains('invalid-feedback')) feedback.textContent = msg;
-  } else {
-    el.classList.add('is-valid');
-  }
-}
-
-function validateForm() {
-  const fields = ['fullname', 'email', 'phone', 'class-input', 'event-select'];
-  const results = fields.map(id => validateField(id));
-  return results.every(Boolean);
-}
-
-function submitRegistration() {
-  const reg = {
-    id: Date.now(),
-    fullname: document.getElementById('fullname').value.trim(),
-    email: document.getElementById('email').value.trim(),
-    phone: document.getElementById('phone').value.trim(),
-    classname: document.getElementById('class-input').value.trim(),
-    eventId: parseInt(document.getElementById('event-select').value),
-    createdAt: new Date().toLocaleString('vi-VN')
-  };
-  const list = getRegistrations();
-  list.push(reg);
-  saveRegistrations(list);
-
-  const successAlert = document.getElementById('success-alert');
-  const eventName = events.find(e => e.id === reg.eventId)?.title || '';
-  if (successAlert) {
-    successAlert.innerHTML = `✅ Đăng ký thành công! <strong>${reg.fullname}</strong> đã đăng ký <strong>${eventName}</strong>. <a href="registrations.html" class="alert-link">Xem danh sách đăng ký →</a>`;
-    successAlert.classList.remove('d-none');
-    successAlert.scrollIntoView({ behavior: 'smooth' });
-  }
-  document.getElementById('register-form').reset();
-  document.querySelectorAll('.is-valid, .is-invalid').forEach(el => el.classList.remove('is-valid', 'is-invalid'));
-}
-
-// =============================================
-// REGISTRATIONS PAGE
-// =============================================
-function renderRegistrationsPage() {
-  const tbody = document.getElementById('reg-tbody');
-  const emptyMsg = document.getElementById('empty-msg');
-  const tableWrapper = document.getElementById('table-wrapper');
-  if (!tbody) return;
-
-  function render() {
-    const list = getRegistrations();
-    const countEl = document.getElementById('reg-count');
-    if (countEl) countEl.textContent = list.length;
-
-    if (list.length === 0) {
-      if (emptyMsg) emptyMsg.classList.remove('d-none');
-      if (tableWrapper) tableWrapper.classList.add('d-none');
+    if (!validateRegisterForm(form)) {
+      successBox.classList.add("d-none");
       return;
     }
-    if (emptyMsg) emptyMsg.classList.add('d-none');
-    if (tableWrapper) tableWrapper.classList.remove('d-none');
 
-    tbody.innerHTML = list.map((r, i) => {
-      const ev = events.find(e => e.id === r.eventId);
-      return `<tr>
-        <td>${i + 1}</td>
-        <td>${r.fullname}</td>
-        <td>${r.email}</td>
-        <td>${r.phone}</td>
-        <td>${r.classname}</td>
-        <td>${ev ? ev.title : 'Không rõ'}</td>
-        <td>${r.createdAt}</td>
-        <td><button class="btn btn-danger btn-sm" onclick="deleteOne(${r.id})">🗑️ Xóa</button></td>
-      </tr>`;
-    }).join('');
-  }
+    const ev = getEventById(form.eventSelect.value);
+    const registration = {
+      id: "REG-" + Date.now(),
+      fullName: form.fullName.value.trim(),
+      email: form.email.value.trim(),
+      phone: form.phone.value.trim(),
+      className: form.className.value.trim(),
+      eventId: ev.id,
+      eventTitle: ev.title,
+      note: form.note.value.trim(),
+      registeredAt: new Date().toISOString()
+    };
 
-  window.deleteOne = function(id) {
-    if (!confirm('Xóa đăng ký này?')) return;
-    const list = getRegistrations().filter(r => r.id !== id);
-    saveRegistrations(list);
-    render();
-  };
+    saveRegistration(registration);
 
-  const deleteAllBtn = document.getElementById('delete-all-btn');
-  if (deleteAllBtn) {
-    deleteAllBtn.addEventListener('click', () => {
-      if (!confirm('Xóa TẤT CẢ đăng ký? Thao tác không thể hoàn tác.')) return;
-      saveRegistrations([]);
-      render();
-    });
-  }
-
-  render();
-}
-
-// =============================================
-// STATS on index
-// =============================================
-function animateCount(el, target) {
-  let start = 0;
-  const step = Math.ceil(target / 40);
-  const interval = setInterval(() => {
-    start = Math.min(start + step, target);
-    el.textContent = start + (el.dataset.suffix || '');
-    if (start >= target) clearInterval(interval);
-  }, 30);
-}
-function initStats() {
-  document.querySelectorAll('[data-count]').forEach(el => {
-    animateCount(el, parseInt(el.dataset.count));
+    successBox.textContent = `Đăng ký thành công cho sự kiện "${ev.title}"! Bạn có thể xem lại tại trang Danh sách đăng ký.`;
+    successBox.classList.remove("d-none");
+    form.reset();
+    populateEventSelect();
   });
 }
 
-// =============================================
-// INIT
-// =============================================
-document.addEventListener('DOMContentLoaded', () => {
+/* =========================================================
+   5. TRANG DANH SÁCH ĐĂNG KÝ (registrations.html)
+   ========================================================= */
+
+function renderRegistrations() {
+  const tbody = document.getElementById("registrationsBody");
+  if (!tbody) return;
+
+  const list = getRegistrations();
+  const emptyState = document.getElementById("registrationsEmpty");
+  const clearAllBtn = document.getElementById("clearAllBtn");
+
+  if (list.length === 0) {
+    tbody.innerHTML = "";
+    if (emptyState) emptyState.classList.remove("d-none");
+    if (clearAllBtn) clearAllBtn.classList.add("d-none");
+    return;
+  }
+
+  if (emptyState) emptyState.classList.add("d-none");
+  if (clearAllBtn) clearAllBtn.classList.remove("d-none");
+
+  tbody.innerHTML = list
+    .map(
+      (r) => `
+      <tr>
+        <td>${r.fullName}</td>
+        <td>${r.email}</td>
+        <td>${r.phone}</td>
+        <td>${r.className}</td>
+        <td>${r.eventTitle}</td>
+        <td>${r.note ? r.note : "<span class='text-muted-custom'>—</span>"}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-volt btn-delete-reg" data-id="${r.id}">Xóa</button>
+        </td>
+      </tr>
+    `
+    )
+    .join("");
+
+  tbody.querySelectorAll(".btn-delete-reg").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      deleteRegistration(btn.dataset.id);
+      renderRegistrations();
+    });
+  });
+}
+
+function initRegistrationsPage() {
+  const tbody = document.getElementById("registrationsBody");
+  if (!tbody) return;
+
+  renderRegistrations();
+
+  const clearAllBtn = document.getElementById("clearAllBtn");
+  if (clearAllBtn) {
+    clearAllBtn.addEventListener("click", () => {
+      if (confirm("Xóa toàn bộ danh sách đăng ký? Hành động này không thể hoàn tác.")) {
+        clearRegistrations();
+        renderRegistrations();
+      }
+    });
+  }
+}
+
+/* =========================================================
+   Khởi chạy khi DOM sẵn sàng
+   ========================================================= */
+
+document.addEventListener("DOMContentLoaded", () => {
   renderFeaturedEvents();
-  initFilters();
-  renderEventCards(events);
+  initEventListPage();
   initRegisterPage();
-  renderRegistrationsPage();
-  initStats();
+  initRegistrationsPage();
 });
