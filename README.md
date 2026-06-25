@@ -1,9 +1,9 @@
 # PLUGGED - Website Sự Kiện & Workshop Guitar Điện
 
 ## 1. Thông tin sinh viên
-- Họ tên: ........................................................
-- MSSV: ..........................................................
-- Lớp: ............................................................
+- Họ tên: Đoàn Hoàng Hảo
+- MSSV: 24210501014
+- Lớp: 242101TH001
 
 ## 2. Mô tả dự án
 PLUGGED là website tĩnh giới thiệu và đăng ký các sự kiện/workshop liên quan
